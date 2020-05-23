@@ -1,0 +1,515 @@
+
+一、张量的生成
+    tf.constant(张量内容，dtype = 数据类型(可选))
+
+    tf.constant([1, 5], dtype = tf.int64)  表示创建一阶张量，里面有两个元素1和5
+
+    很多情况下，数据是由numpy给出的，我们可以将其转换为Tensor
+    tf.convert_to_tensor(数据名，dtype = 数据类型)
+
+    a = np.arange(0, 5)
+    b = tf.convert_to_tensor(a, dtype = tf.int64)
+
+    print(a)  [0, 1, 2, 3, 4]
+    print(b)  yf.Tensor([0, 1, 2, 3, 4], shape=(5,), dtype = tf.int64)
+
+    tf.zeros(n) 创建维度为n的全零张量
+    tf.ones(n)  创建维度为n的全一张量
+    tf.fill(n, 指定值) 创建n为全为指定值的张量
+
+    注意事项：一维：直接写个数 二维：[行， 列] 多维[n, m, i, j....]
+
+    tf.zeros([2, 3])  tf.Tensor([[0 0 0], [0 0 0]], shape = (2, 3), dtype = tf.float32)
+    tf.ones(4)  tf.Tensor([1 1 1 1], shape = (4, ), dtype = tf.float32)
+    tf.fill([2, 2], 9)  tf.Tensor([[9 9], [9, 9]], shape = (2, 2), dtype = int32)
+
+    生成正态分布的随机数 默认均值为0，标准差为1
+    tf.random.normal(维度, mean = 均值, stddev = 标准差)
+
+    生成截断式正态分布的随机数
+    tf.random.truncated_normal(维度, mean = 均值, stddev = 标准差) 该函数可以保证生成随机数的均值在(u +- 2b)之间 u表示均值，b表示标准差
+    ，若生成的数据不满足上述条件，则会重新进行生成
+    tf.random.normal([2, 2], mean = 0.5, stddev = 1)
+    生成两行两列的张量，且以0.5位均值，1为标准差
+
+    生成均匀分布随机数
+    tf.random.uniform(维度，minval = 最小值, maxval = 最大值)
+    生成2 x 2 最小值为0，最大值为1的均匀分布张量
+    tf.random.uniform([2, 2], minval = 0, maxval = 1)
+
+二、Tensorflow2的常用函数
+    强制将tensor转化为指定数据类型  tf.cast(张量名, dtype = 数据类型)
+
+    计算张量各维度上的最小值  tf.reduce_min(张量名)
+
+    计算张量各维度上的最大值  tf.reduce_max(张量名)
+
+    x1 = tf.constant([1, 2, 3]， dtype = tf.float32)
+    x2 = tf.cast(x1, dtype = tf.float64)  # 将原来的32位浮点型转化为64位浮点
+
+    理解axis
+    在一个二维张量或者数组中，可以通过调整axis等于0或者1控制维度。若axis等于0，则进行列元素操作(跨行操作)，若axis等于1表示行元素操作，
+    (跨列操作)，若不指定axis的值，则所有元素，全部参与运算
+
+    计算张量沿着指定维度的平均值
+    tf,reduce_mean(张量名，axis = 操作轴)
+    计算张量沿着指定维度的和
+    tf.reduce_sum(张量名，axis = 操作轴)
+
+    x = tf.constant([1, 2, 3], [2, 2, 3])
+    tf.reduce_mean(x)  对x的所有元素求平均值  tf.Tensor(2, shape = (), dtype = int32)
+    tf.reduce_sum(x, axis = 1) 对x中所有行求和 tf.Tensor([6 7], shape = (2, ), dtype = int32)
+
+    tf.Variable()
+    该函数将变量标记为可训练的，被标记的变量会在反向传播中记录梯度信息。神经网络训练时，常用该函数标记待训练参数
+    tf.Variable(初始值)
+    w = tf.Variable(tf.random.normal([2, 2], mean = 0, stddev = 1))
+
+    tensorflow中的数学运算
+    四则运算：tf.add(张量一， 张量二) tf.substract(张量一， 张量二) tf.multiply(张量一， 张量二) tf.divide(张量一， 张量二)
+    注意：只有维度相同的张量才可以做四则运算
+    平方、次方、开方：tf.square(张量名) tf.pow(张量名，n次方数) tf.sqrt(张量名)
+    矩阵乘：tf.matmul(矩阵1，矩阵2)
+
+    tf.data.Dataset.from_tensor_slices
+    切分传入张量的第一维度，生成输入特征/标签对，构建数据集
+    data = tf.data.Dataset.from_tensor_slices(输入特征， 标签)
+    numpy和tensor格式，都可以以此来读入数据
+
+    feature = tf.constant([12, 23, 10, 17])
+    labels = tf.constant([0, 1, 1, 0])
+    dataset = tf.data.Dataset.from_tensor_slices((feature, labels)) 将特征和标签配对
+
+    tf.GradientTape 实现某个函数，对于某个参数的求导运算
+    with结构记录运算过程，gradient求张量的梯度
+    with tf.GradientTape() as tape:
+        若干计算过程
+    grad = tape.gradient(函数，求导参数)
+
+    with tf.GradientTape() as tape:
+        w = tf.Variable(tf.constant(3.0))
+        lose = tf.pow(w, 2)
+    grad = tape.gradient(lose, w)
+    当w = 3时，对w的平方求导，得到的结果是：tf.Tensor(6.0, shape = (), dtype = float32)
+
+    enumerate 枚举
+    enumerate是python中的内建函数，它可以遍历每个元素(列表，元组，字符串)，组合为：索引，元素，常在for循环中使用
+    enumerate(列表名)
+
+    seq = ['one', 'two', 'three']
+    for i, element in enumerate(seq):
+        print(i, element)
+    0 one 1 two 2 three
+
+    在处理分类问题时，常用独热码表示标签 tf.one_hot
+    标记类别：1表示是。0表示非
+    tf.one_hot()函数将待转换数据，转换为one_hot形式的数据进行输出
+    tf.one_hot(待转换数据，depth = 几分类)
+
+    classes = 3
+    labels = tf.constant([1, 0, 2]) 输入的元素，最小值为0，最大值为1
+    output = tf.one_hot(labels, depth = classes) 将label中的数字进行三分类
+    使数据符合概率分布以后，才可以与独热码的标签作比较，可以使用softmax函数，使数据符合概率分布
+    tf.nn.softmax函数：当n分类的n个输出(y0, y1, y2......yn-1)通过softmax函数，便符合了概率分布
+    y = tf.constant([1.01, 2.01, -0.66])
+    y_pro = tf.nn.softmax(y)  输出的y_pro便符合概率分布
+
+    assign_sub常用于参数的自更新
+    赋值操作，更新参数的值，并将其进行返回
+    调用assign_sub前，先用tf.Variable定义变量w为可训练(可自更新)
+    w.assign_sub(w要自减的内容)
+
+    w = tf.Variable(4)
+    w.assign_sub(1) w = w - 1 w进行自减一操作，w被更新为3
+    print(w)
+
+    tf.argmax
+    返回张量沿着指定维度最大值的索引号
+    tf.argmax(张量名，axis = 操作轴)
+
+预备知识：
+    tf.where()
+    条件语句真则返回A，条件语句假则返回B
+    tf.where(条件语句, 真返回A，假返回B)
+
+    a = tf.constant([1, 2, 3, 1, 1])
+    b = tf.constant([0, 1, 3, 4, 5])
+    c = tf.where(tf.greater(a, b), a, b) 若a > b，返回a对应位置的元素，否则返回b位置对应的元素
+    print(c)  tf.Tensor([1, 2, 3, 4, 5], shape = (5, ), dtype = int32)
+
+    np.random.RandomState.rand() 返回一个0-1之间的随机数
+    np.random.RandomState.rand(维度) 若维度为空，则返回标量
+
+    import numpy as np
+    rdm = np.random.RandomState(seed = 1) 随机种子相同，保证每次产生的随机数是一致的
+    a = rdm.rand() 返回一个随机标量
+    b = rdm.rand(2, 3) 返回维度为两行三列的随机数矩阵
+
+    np.vstack(数组1, 数组2)  将两个数组按垂直方向叠加
+    import numpy as np
+    a = np.array([1, 2, 3])
+    b = np.array([4, 5, 6])
+    c = np.vstack((a, b))
+    print(c)  [[1, 2, 3], [4, 5, 6]]
+
+    np.mgrid[] 返回若干组维度相同的等差数组
+    np.mgrid[起始值:结束值:步长，起始值:结束值:步长, ...] [起始值 结束值]
+
+    x.ravel() 将x编程一维数组，将x拉直
+
+    np.c_[]  返回的间隔数值点配对
+    np.c_[数组1，数组2...]
+
+    import numpy as np
+    import tensorflow as tf
+
+    # 生成等间隔数值点
+    x, y = np.mgrid[1:3:1, 2:4:0.5]
+    # 将x, y拉直，并合并配对为二维张量，生成二维坐标点
+    grid = np.c_[x.ravel(), y.ravel()]
+
+    x:[[1. 1. 1. 1.] [2. 2. 2. 2.]]
+    y:[[2.  2.5 3.  3.5] [2.  2.5 3.  3.5]]
+    x.ravel(): [1. 1. 1. 1. 2. 2. 2. 2.]
+    y.ravel(): [2.  2.5 3.  3.5 2.  2.5 3.  3.5]
+    grid: [[1.  2. ] [1.  2.5] [1.  3. ] [1.  3.5] [2.  2. ] [2.  2.5] [2.  3. ] [2.  3.5]]
+
+神经网络的复杂度：
+    NN复杂度：用神经网络层数和神经网络参数的个数表示
+    在统计神经网络层数时，不包括输入层，因为输入层参与运算
+
+指数衰减学习率：
+    可以先使用较大的学习率，快速度得到最优解，然后逐步减小学习率，使模型在后期训练稳定
+    指数衰减学习率 = 初始学习率 * 学习率衰减率 ** (当前轮数 / 多少轮衰减一次)
+
+激活函数：
+    激活函数为非线性函数，它的加入大大的提升了模型的表达力，使多层神经网络不再是输入x的线性组合，神经网络可以随着层数
+    的增加提升表达力
+
+    优秀的激活函数的特点：
+        非线性：激活函数非线性是，多层神经网络可逼近所有的函数，激活函数为非线性时，才不会被单层网络替代
+        可微性：因为优化器大多依据梯度下降更新参数
+        单调性：当激活函数是单调的时，能保证单层网络的损失函数为凸函数，更容易收敛
+        近似恒等性：f(x) 约等于 x 当参数初始化为随机小值时，神经网络更加稳定，激活函数输出值约等于激活函数输入值
+    激活函数输出的范围：
+        激活函数的输出为有限值，权重对于特征的影响会更加显著，基于梯度的优化方法更加稳定
+        激活函数输出为无限值时，参数的初始值对于模型的影响非常大，建议调小学习率
+    具体的激活函数：
+        sigmoid函数：
+            tf.nn.sigmoid(x)  f(x) = 1 / (1 + exp(-x))
+            输入值是非常大的正数输出值为1,若是非常大的负数，输出值为0，相当于对输入进行了归一化
+            特点：
+                1、容易造成梯度消失
+                2、输出非0均值，收敛缓慢
+                3、幂运算复杂，训练时间长
+        sigmoid的缺点：
+            深层神经网络在更新参数时，需要从输出层到输入层逐层进行链式求导，而sigmoid函数的导数输出是0-0.25的
+            小数，链式求导需要多层导数连续相乘，会出现多个0-0.25之间的连续相乘，结果会趋于0，导致梯度消失，使
+            参数无法继续更新，我们希望输入每层神经网络的特征是以0位均值的小数值，但是过sigmoid激活函数的数据
+            都是正数，会使收敛变慢，且sigmoid函数存在幂运算，计算复杂度较大，训练时间长
+
+        Tanh函数
+        tf.math.tanh(x) f(x) = (1 - exp(-2x)) / (1 + exp(-2x))
+        特点：
+            1、输出是0均值的
+            2、以造成梯度消失
+            3、幂运算复杂，训练时间长
+
+        Relu函数
+        tf.nn.relu(x)  f(x) = max(x, 0) = {0 x < 0, x x >= 0}
+        符合激活函数的近似恒等性
+        优点：
+            1、在正区间内，解决了梯度消失问题
+            2、只需要判断输入是否大于0，计算速度快
+            3、收敛速度远远快鱼sigmoid和tanh
+        缺点：
+            1、输出非0均值，收敛较慢
+            2、Dead Relu问题，某些神经元可能永远被激活，导致响应的参数永远不可能被更新 。造成神经元死亡
+               造成神经元死亡的根本原因是经过relu函数的负数特征过多导致，我们可以改进随机初始化，避免过多的负数特征
+               送入relu函数，可以通过设置较小的学习率，减小参数分布的变化，避免训练中，产生过多的负数特征进入relu函数
+
+        Leaky Relu函数
+            tf.nn.leaky_relu(x) f(x) = max{ax, x}
+            为解决Relu函数负区间为0，导致神经元死亡问题而设计，leaky relu负区间，引入了固定的斜率a，使leaky relu
+            负区间不再恒等于0，虽然leaky relu函数比relu函数效果更好，但是选择relu做激活函数的网络会更多
+
+        关于激活函数对于初学者的建议：
+            1、首选relu函数
+            2、学习率设置较小值
+            3、输入特征要进行标准化，使输入特征满足以0为均值，1为标准差的正态分布
+            4、初始化的参数要进行中心化，即让随机生成的参数满足以0位均值，sqrt(2 / 当前层的输入特征个数)为标准差的正态分布
+
+损失函数：
+    预测值(y)与标准答案(y_)的差距
+    神经网络的最终目标就是使计算出来的结果y与标准答案y_无限接近，也就是loss值最小
+    主流的损失函数：mse(均方误差) 自定义 交叉熵ce
+    均方误差
+    lose_mse = tf.reduce_mean(tf.square(y_ - y))
+
+    自定义损失函数：该损失函数根据具体问题变化
+
+    交叉熵：
+        表征两个概率分布之间的距离
+        tf.losses.categorical_crossentropy(y_, y)
+        交叉熵越大，两个概率距离越远，交叉熵越小，两个概率距离越近
+
+        再使用交叉熵时，通常使输出先经过softmax函数，使输出满足概率分布，然后再进行交叉熵计算，来评价标准答案和预测值之间的距离
+        直接使用tf.nn.softmax_cross_entropy_with_logits(y_, y) 一次性完成通过softmax函数和计算交叉熵计算
+
+欠拟合和过拟合
+    欠拟合：指的是对现有数据集学习的不彻底
+        解决方式：
+            1、增加特征项
+            2、增加网络参数
+            3、减少正则化参数
+    过拟合：指的是神经网络对数据拟合的太好，但对于从未见过的数据，不能给出正确的结果
+        解决方式：
+            1、数据清洗，减小数据集中的噪声，使数据集更加纯洁
+            2、增加训练集，使模型减到更多的数据
+            3、采用正则化或者增大正则化的参数
+    正则化缓解过拟合：
+        正则化在损失函数中引入模型复杂度指标，利用给w加权值，弱化了数据的噪声，正则化一般不用于偏执项
+        loss = (1)loss(y 与 y_) + (2)REGULARIZER * lose(w)
+        (1) 描述了以前求得的loss值，表示了预测结果和正确结果之间的差距，比如交叉熵、均方误差等
+        (2) 参数的权重，使用超参数REGULARIZER给出参数w在总的loss中的比重
+            该处的loss有两种方法计算：
+                1、对w的绝对值求和 L1正则化
+                2、对所有参数w的平方值求和 L2正则化
+        正则化的选择：
+            L1正则化大概率会使很多参数变为0，所以该方法通过稀疏参数，减少参数的数量，降低模型复杂度
+            L2正则化会使参数接近0但是不等于0，因此该方法通过减小参数数值，可有效缓解因噪声引起的过拟合
+
+神经网络参数优化器：
+    神经网络是基于连接的人工智能
+    当网络的结构固定以后，不同参数的选取，对于网络的模型表达力，影响很大更新参数的过程，就是学习的过程
+    优化器就是引导神经网络更新参数的工具
+
+    优化参数w，损失函数loss 学习率lr 每次迭代一个batch，每个batch通携带2 ** n方组数据
+    t表示当前batch迭代的总次数
+
+    1、计算t时刻损失函数关于当前参数的梯度 g = loss对于当前w求偏导数
+    2、计算t时刻 一阶动量 mt 和二阶动量 Vt
+    3、计算t时刻下降的梯度 nt = lr * mt / sqrt(Vt)
+    4、计算t + 1时刻的参数 w(t + 1) = wt - nt = wt - lr * mt / sqrt(Vt)
+
+    最常用的优化器：
+        SGD(无momentum)，常用的梯度下降法
+        mt = gt  一阶动量为梯度  Vt = 1 二阶动量恒等于1
+
+        SGDM
+
+    一阶动量：与梯度相关的函数
+    二阶动量：与梯度平方相关的函数
+
+
+keras六步法搭建神经网络
+    1、import相关模块
+    2、加载要喂入网络的训练集和测试集
+    3、在Sequential中搭建网络结构，逐层描述网络
+    4、选择各种优化器、评测指标等等
+    5、在fit()中执行训练过程
+    6、 使用summary打印出网络的结构及参数统计
+
+    model = tf.keras.models.Sequential([网络结构]) 逐层描述神经网络
+    网络结构举例：
+        拉直层：tf.keras.layers.Flatten() 该层不含计算，只是形状转换
+        全连接层：tf.keras.layers.Dense(神经元个数，activation = "激活函数"，kernel_regularizer = 哪种正则化)
+            激活函数：relu, softmax,sigmoid,tanh
+            正则化：tf.keras.regularizers.l1()   tf.keras.regularizers.l2()
+        卷积层：tf.keras.layers.Conv2D(filters = 卷积核个数, kernel_size = 卷积核尺寸，strides = 卷积步长，padding = "vaild" or "same")
+        LSTM层：tf.keras.layers.LSTM()
+
+    model.compile(optimizer = 优化器, loss = 损失函数 metrics = [“准确率”] )
+     Optimizer可选:
+    ‘sgd’ or tf.keras.optimizers.SGD (lr=学习率,momentum=动量参数)
+    ‘adagrad’ or tf.keras.optimizers.Adagrad (lr=学习率)
+    ‘adadelta’ or tf.keras.optimizers.Adadelta (lr=学习率)
+    ‘adam’ or tf.keras.optimizers.Adam (lr=学习率, beta_1=0.9, beta_2=0.999) loss可选:
+    ‘mse’ or tf.keras.losses.MeanSquaredError()
+    ‘sparse_categorical_crossentropy’ or tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False) 表示是否是原始输出，
+        也就是没有经过概率分布的输出，若输出经过了神经网络，那么该处是false，若没有经过概率分布，则设置为true
+    Metrics可选:
+    ‘accuracy’ ：y_和y都是数值，如y_=[1]  y=[1]
+    ‘categorical_accuracy’ ：y_和y都是独热码(概率分布)输出，如y_=[0,1,0] y=[0.256,0.695,0.048]
+    ‘sparse_categorical_accuracy’ ：y_是数值，y是独热码(概率分布),如y_=[1] y=[0.256,0.695,0.048]
+
+    model.fit (训练集的输入特征,   训练集的标签,   batch_size=  ,    epochs=  ,
+        validation_data=(测试集的输入特征，测试集的标签), validation_split=从训练集划分多少比例给测试集，这两种方式，二者选其一
+        validation_freq = 多少次epoch测试一次，打印一次)
+
+    model.summary（） 打印出结果及参数统计
+
+类封装神经网络结构：
+    class MyModel(Model):
+        def _init__(self):  # 定义网络结构块
+            supper(MyModel, self).__init__()
+            定义网络结构快
+
+        def call(self, x):  # 写出前向传播
+            调用网络模块实现前向传播
+            return y
+
+    model = MyModel()
+
+    示例：
+        class IrisModel(Model):
+            def __init__(self):
+                supper(IrisModel, self).__init__()
+                self.d1 = Dense(3)  # 包含有三个神经元的全连接网络
+
+            def call(self, x):
+                y = self.d1(x)
+                return y
+
+        model = IrisModel()
+
+神经网络八股功能的扩展：
+    1、自制数据集，解决本领域应用
+    2、数据增强，扩充数据集
+    3、断点存训，存取模型
+    4、参数提取，将参数存入文本
+    5、acc/loss可视化，查看训练结果
+    6、应用程序，给图识物
+
+
+数据增强(增大数据量)：
+    TensorFlow2.0中提供了数据增强函数
+    image_gen_train = ImageDataGenerator(
+    rescale=1. / 255,        将所有数据乘以该值
+    rotation_range=45,      随机旋转角度范围数
+    width_shift_range=.15,    随机宽度偏移量
+    height_shift_range=.15,      随机高度偏移量
+    horizontal_flip=False,       是否随机水平翻转
+    zoom_range=0.5              随机缩放范围[1 - n, 1 + n]
+)
+
+卷积神经网络：
+    1、感受野：卷积神经网络个输出特征图中的每一个像素值，在原始输入图片上映射区域的大小
+        若原始图片映射到3*3的图像上，那么他的感受野就是3
+        若原始图片经过两层映射到一个像素点，那么他的感受野就是5
+        若有两种方式的最终感受野是相同的，那么这两种方法的特征提取能力是相同的
+
+    2、全零填充：有时候希望卷积计算保证输入特征图的尺寸不变，可以使用全零填充
+       使用全零填充时，输出特征图的边长 = 输入边长 / 步长 (向上取整)
+       不使用全零填充，输出特征图边长 = (输入边长 - 核长 + 1) / 步长
+       tensorFlow 描述全零填充 padding = 'SAME' 或者 padding = 'VAILD'
+
+    3、TensorFlow描述卷积层
+        tf.keras.layers.Conv2D(
+            filters = 卷积核个数,
+            kernel_size = 卷积核尺寸， 正方形写核长整数，或者(核高h，核宽w)
+            strides = 滑动步长， # 横纵向相同写步长整数，或(纵向步长h， 横向步长w)，默认为1
+            padding = "same" or "vaild" 默认为不使用全零填充vaild
+            activation = "relu" or "sigmoid" or "tanh" or "softmax"等，若有BN此处不写
+            input_shape = (高， 宽， 通道数) # 输入特征图的维度，可以省略
+        )
+        model = tf.keras.models.Sequential([
+        Conv2D(6, 5, padding = "vaild", activation = 'sigmoid', MaxPool2D(2, 2))与
+        Conv2D(6, (5, 5), padding = "vaild", activation = 'sigmoid',MaxPool2D(2, (2, 2)))
+        Conv2D(filters = 6, kernel_size(5, 5), padding = "vaild", activation = 'sigmoid',MaxPool2D(pool_size(2, 2), strides = 2)
+        Flatten(),
+        Dense(10, activation = 'softmax')
+        ]
+        )
+    4、批标准化
+        标准化：使数据符合0均值，1为标准差的分布
+        批标准化：对一小批数据(batch)，做标准化处理，常用作卷积操作和激活操作之间
+        BN操作可使原本偏移的特征数据，重新拉回到零均值，使特征数据的微小变化，更明显的提现到激活函数，提升激活函数对数据的区分力
+        使特征数据完全满足正态分布，集中在激活函数的线性区域
+        在BN操作中为每个卷积核引入两个可训练参数(缩放因子和偏移因子)，优化了特征数据分布的宽窄和偏移量，保证了网络的非线性表达力
+
+        BN层位于卷积层之后，激活层之前
+        TendorFlow描述批标准化
+        tf.keras.layers.BatchNormalization()
+
+        model = tf.keras.models.Sequential([
+            Conv2D(filters = 6, kernel_size = (5, 5), padding = 'same'),  # 卷积层
+            BatchNormalization(), # BN层
+            Activation('relu'), # 激活层
+            MaxPool2D(pool_size = (2, 2), strides = 2, padding = 'same'), # 池化层
+            Dropout(0.2), # dropout层
+        ])
+
+    5、池化
+        减少特征数据量，最大池化可提取图片文理，均值池化可保留背景特征
+        tf.keras.layers.MaxPool2D(pool_size = 池化核大小,
+                    strides = 池化步长,
+                     padding = 是否使用全零填充), # 池化层
+
+        tf.keras.layers.AveragePooling2D(pool_size = 池化核大小,
+                    strides = 池化步长,
+                     padding = 是否使用全零填充), # 池化层
+
+    6、舍弃
+        在神经网络训练时，将一部分神经元按照一定的概率从神经网络中暂时舍弃。神经网络使用时，被舍弃的神经元恢复连接
+        tf.keras.layers.Dropout(舍弃的概率)
+        model = tf.keras.models.Sequential([
+            Conv2D(filters = 6, kernel_size = (5, 5), padding = 'same'),  # 卷积层
+            BatchNormalization(), # BN层
+            Activation('relu'), # 激活层
+            MaxPool2D(pool_size = (2, 2), strides = 2, padding = 'same'), # 池化层
+            Dropout(0.2), # dropout层
+        ])
+
+循环神经网络：
+    卷积神经网络是借助卷积核实现的参数空间共享，通过卷积计算层提取空间信息
+    卷积神经网络借助卷积核提取空间特征后，送入全连接网络，实现离散数据的分类
+
+    使用RNN实现炼狱数据的预测
+    循环核：具有记忆力，通过不同时刻的参数共享，实现了对时间序列的信息提取
+
+    前向传播：记忆体内存储的状态信息ht在每个时刻都在被刷新，三个参数矩阵wxh/whh/why自始至终都是固定不变的
+    反向传播：三个参数矩阵wxh、whh、why被剃度下降法更新
+    循环神经网络：借助循环核提取时间特征后，送入全连接神经网络，实现连续数据的预测
+
+    循环计算层：循环计算层的层数时想着输出方向增长的，每层循环核的个数是由自己参数决定的
+
+    TF描述循环计算层：
+        tf.keras.layers.SimpleRNN(记忆体个数，activation = ‘激活函数’， return_sequences = 是否每个时刻输出的ht到下一层)
+        activation = ‘激活函数’，不写的话，就默认使用tanh
+        return_sequences = True 各时间步输出ht
+        return_sequences = False 仅最后时间步输出ht（默认）
+
+       送入RNN时，x_train维度：
+       [送入样本数(几组数据)，循环核时间展开步数，每个时间步输入特征个数]
+
+    Embedding编码：
+        独热码编码：数据量大 过于稀疏 映射之间是独立的，没有表现出关联性；独热码的位宽要与词汇量一致，若是词汇量巨大时，非常浪费资源
+        Embedding是一种单词编码方法：用低维向量实现编码，这种编码通过神经网络进行训练优化，能表现处单词间的相关性
+        tf.keras.layers.Embedding(词汇表大小，编码维度)
+        编码维度就是使用几个数字表示一个单词
+
+        进入Embedding时，x_train维度 [送入样本数， 循环核时间展开步数]
+
+    传统神经网络RNN可以通过记忆体实现短期记忆，进行连续数据的预测，但是在连续时间的序列变长时，会使展开的时间步过长，在反向传播更新参数时，梯度要按照时间步
+    连续相乘，会导致梯度消失
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
